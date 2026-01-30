@@ -1,0 +1,64 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "py_ams_point_interpolant"
+version = "0.1.0"
+authors = [
+  { name="Ricard Campos", email="ricard.campos@coronis.es" },
+]
+description = "Python interface for the PointInterpolant executable of the Adaptive Multigrid Solvers (former PoissonRecon) project."
+readme = "Readme.md"
+license = "MIT"
+requires-python = ">=3.7"
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Operating System :: OS Independent",
+    "Natural Language :: English"
+]
+dependencies = [
+    "numpy>=1.19.0",
+    "matplotlib>=3.5.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "tox",
+    "coverage",
+    "ruff>=0.4",
+    "pytest",
+]
+
+docs = [
+    "mkdocs",
+    "mkdocstrings[python]",
+    "mkdocs-material",
+    "pymdown-extensions",
+    "mkdocs-include-markdown-plugin",
+]
+
+[tool.setuptools]
+include-package-data=true
+
+[tool.setuptools.packages.find]
+where=["."]
+
+[project.scripts]
+py_ams_point_interpolant_demo = "py_ams_point_interpolant.demo:main"
+py_ams_point_interpolant = "py_ams_point_interpolant.cli_app:main"
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+select = ["E", "F", "W", "I"]
+ignore = ["E203", "E266"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
