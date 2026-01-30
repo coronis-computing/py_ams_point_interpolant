@@ -1042,7 +1042,6 @@ void Execute(
 	delete valueSampleData , valueSampleData = NULL;
 	delete gradientSampleData , gradientSampleData = NULL;
 
-    py::print("Tree!");
     if( Tree.set )
 	{
 		FILE* fp = fopen( Tree.value , "wb" );
@@ -1055,7 +1054,6 @@ void Execute(
 		solution.write( fs );
 		fclose( fp );
 	}
-    py::print("Passed tree!");
 	if( Grid.set )
 	{
 		int res = 0;
@@ -1070,7 +1068,6 @@ void Execute(
 		WriteGrid< Real , Dim >( Grid.value , values , res , unitCubeToModel * voxelToUnitCube , Verbose.set );
 		DeletePointer( values );
 	}
-    py::print("Passed grid!");
     if( Out.set )
 	{
 		if constexpr ( Dim==3 )
@@ -1109,7 +1106,6 @@ void Execute(
 			PLY::WritePolygons( Out.value , VertexFactory() , vertices , polygons , ASCII.set ? PLY_ASCII : PLY_BINARY_NATIVE , noComments );
 		}
 	}
-    py::print("Passed mesh!");
 
 	if( Verbose.set ) std::cout <<"#          Total Solve: " << Time()-startTime << " (s), " << MemoryInfo::PeakMemoryUsageMB() << " (MB)" << std::endl;
 }
@@ -1160,13 +1156,6 @@ void PointInterpolantInMemory(
     const char* outputGrid = nullptr
 )
 {
-    // VALIDATION
-    py::print("=== PointInterpolantInMemory Called ===");
-    py::print("dim: " + std::to_string(dim));
-    py::print("valueCount: " + std::to_string(valueCount));
-    py::print("gradientCount: " + std::to_string(gradientCount));
-    py::print("depth: " + std::to_string(depth));
-    
     if( valueCount == 0 && gradientCount == 0 )
     {
         MK_THROW("Must provide either values or gradients (both counts are 0)");
