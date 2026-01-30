@@ -27,22 +27,6 @@ dependencies = [
     "matplotlib>=3.5.0",
 ]
 
-[project.optional-dependencies]
-dev = [
-    "tox",
-    "coverage",
-    "ruff>=0.4",
-    "pytest",
-]
-
-docs = [
-    "mkdocs",
-    "mkdocstrings[python]",
-    "mkdocs-material",
-    "pymdown-extensions",
-    "mkdocs-include-markdown-plugin",
-]
-
 [tool.setuptools]
 include-package-data=true
 
