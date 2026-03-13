@@ -1,7 +1,7 @@
 # Include C++ source files
-include src/*.cpp
-include src/*.h
-include src/*.hpp
+include cpp/*.cpp
+include cpp/*.h
+include cpp/*.hpp
 
 # Include CMake files if present
 include CMakeLists.txt

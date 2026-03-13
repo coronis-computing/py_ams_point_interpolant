@@ -50,6 +50,7 @@ set(DEBUG_FLAGS
 
 # OpenMP handling
 if(OpenMP_CXX_FOUND)
+    message(STATUS "OpenMP found, enabling for target")
     set(OPENMP_LIB OpenMP::OpenMP_CXX)
 endif()
 
@@ -58,6 +59,10 @@ FetchContent_MakeAvailable(pybind11 poisson_recon)
 
 # Create the Python module
 pybind11_add_module(ams_point_interpolant cpp/ams_point_interpolant.cpp)
+
+if(OpenMP_CXX_FOUND)
+    target_link_libraries(ams_point_interpolant PRIVATE OpenMP::OpenMP_CXX)
+endif()
 
 # Include directories of PoissonRecon
 target_include_directories(ams_point_interpolant PRIVATE 

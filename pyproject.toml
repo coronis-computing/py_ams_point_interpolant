@@ -11,14 +11,12 @@ authors = [
 description = "Python interface for the PointInterpolant executable of the Adaptive Multigrid Solvers (former PoissonRecon) project."
 readme = "Readme.md"
 license = "MIT"
-requires-python = ">=3.7"
+requires-python = ">=3.10"
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
     "Intended Audience :: Developers",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.6",
-    "Programming Language :: Python :: 3.7",
-    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3",    
+    "Programming Language :: Python :: 3.10",
     "Operating System :: OS Independent",
     "Natural Language :: English"
 ]
@@ -32,6 +30,14 @@ include-package-data=true
 
 [tool.setuptools.packages.find]
 where=["."]
+
+[project.optional-dependencies]
+dev = [    
+    "ruff>=0.4",
+    "cibuildwheel>=2.19.0",
+    "build>=1.2.0",
+    "twine>=5.0.0",    
+]
 
 [project.scripts]
 py_ams_point_interpolant_demo = "py_ams_point_interpolant.demo:main"

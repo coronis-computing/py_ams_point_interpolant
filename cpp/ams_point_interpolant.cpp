@@ -1,5 +1,5 @@
 // ----------------------------------------------------------------------------
-// PoissonRecon's slightly modified PointInterpolant.cpp
+// Python interfaced version of Adaptive Multigrid Solver's PointInterpolant.cpp
 // ----------------------------------------------------------------------------
 /*
 Copyright (c) 2014, Michael Kazhdan
@@ -36,7 +36,6 @@ DAMAGE.
 #define WEIGHT_DEGREE 2 // The order of the B-Spline used to splat in the weights for density estimation
 #define DEFAULT_FEM_DEGREE 2 // The default finite-element degree
 #define DEFAULT_FEM_BOUNDARY BOUNDARY_FREE // The default finite-element boundary type
-#define DEFAULT_DIMENSION 2 // The dimension of the system
 
 #include "CmdLineParser.h"
 #include "FEMTree.h"
@@ -44,6 +43,7 @@ DAMAGE.
 #include "PPolynomial.h"
 #include "Ply.h"
 #include "VertexFactory.h"
+#include <algorithm>
 #include <float.h>
 #include <math.h>
 #include <stdio.h>
@@ -72,7 +72,6 @@ struct PointInterpolantParameters {
     int fullDepth = 5;
     int baseDepth = -1;
     int bType = DEFAULT_FEM_BOUNDARY + 1;
-    int dimension = DEFAULT_DIMENSION;
     int iters = 8;
     int baseVCycles = 4;
     int maxMemoryGb = 0;
@@ -87,7 +86,6 @@ struct PointInterpolantParameters {
     float iso = 0.f;
     float lapWeight = 0.f;
     float biLapWeight = 1.f;
-    bool showPerformance = false;
     bool showResidual = false;
     bool exactInterpolation = true;
     bool verbose = false;
@@ -665,26 +663,17 @@ Interpolant<sizeof...(FEMSigs), Real> Execute(
         treePtr->resetNodeIndices(0);
 
         if (param.valueWeight > 0) {
-            std::cout << "Value weight = " << param.valueWeight << std::endl;
-
             assert(valueSamples != nullptr);
             assert(valueSampleData != nullptr);
             assert(valueSamples->size() == valueSampleData->size());
-            std::cout << "valueSamples size: " << valueSamples->size() << std::endl;
-            std::cout << "valueSampleData size: " << valueSampleData->size() << std::endl;
 
             auto dataPtr = GetPointer(*valueSampleData);
-            std::cout << "dataPtr: " << (void*)dataPtr << std::endl;
-
             if (param.exactInterpolation) {
-                std::cout << "Exact interpolation" << std::endl;
                 valueInterpolationInfo = FEMTree<Dim, Real>::template InitializeExactPointAndDataInterpolationInfo<Real, FunctionValueType, 0>(*treePtr, *valueSamples, GetPointer(*valueSampleData), ConstraintDual<Dim, Real, FunctionValueType>((Real)param.valueWeight), SystemDual<Dim, Real, FunctionValueType>((Real)param.valueWeight), true, false);
-                std::cout << "Exact interpolation [DONE]" << std::endl;
             } else
                 valueInterpolationInfo = FEMTree<Dim, Real>::template InitializeApproximatePointAndDataInterpolationInfo<Real, FunctionValueType, 0>(*treePtr, *valueSamples, GetPointer(*valueSampleData), ConstraintDual<Dim, Real, FunctionValueType>((Real)param.valueWeight), SystemDual<Dim, Real, FunctionValueType>((Real)param.valueWeight), true, param.depth, 1);
         }
         if (param.gradientWeight > 0) {
-            std::cout << "Gradient weight = " << param.gradientWeight << std::endl;
             if (param.exactInterpolation)
                 gradientInterpolationInfo = FEMTree<Dim, Real>::template InitializeExactPointAndDataInterpolationInfo<Real, FunctionGradientType, 1>(*treePtr, *gradientSamples, GetPointer(*gradientSampleData), ConstraintDual<Dim, Real, FunctionGradientType>((Real)param.gradientWeight), SystemDual<Dim, Real, FunctionGradientType>((Real)param.gradientWeight), true, false);
             else
@@ -692,7 +681,6 @@ Interpolant<sizeof...(FEMSigs), Real> Execute(
         }
 
         // Prepare for multigrid
-        std::cout << "Prepare for multigrid" << std::endl;
         {
             profiler.reset();
 
@@ -709,7 +697,6 @@ Interpolant<sizeof...(FEMSigs), Real> Execute(
         }
 
         // Add the interpolation constraints
-        std::cout << "Adding interpolation constraints" << std::endl;
         {
             profiler.reset();
             constraints = treePtr->initDenseNodeData(Sigs());
@@ -729,7 +716,6 @@ Interpolant<sizeof...(FEMSigs), Real> Execute(
         }
 
         // Solve the linear system
-        std::cout << "Solving the linear system" << std::endl;
         {
             profiler.reset();
             typename FEMTree<Dim, Real>::SolverInfo sInfo;
@@ -831,7 +817,7 @@ Interpolant<Dim, Real> Execute(PointInterpolantParameters& param)
     case 3:
         return Execute<Real>(IsotropicUIntPack<Dim, FEMDegreeAndBType<3, BType>::Signature>(), param);
     default:
-        MK_THROW("Only B-Splines of degree 1 - 3 are supported");
+        MK_THROW("Only B-Splines of degree 2 - 3 are supported");
     }
 }
 // ] ------------------------------------------------------------------
@@ -870,7 +856,6 @@ Interpolant<Dim, Real> pointInterpolant(
     int fullDepth = 5,
     int baseDepth = -1,
     int bType = DEFAULT_FEM_BOUNDARY + 1,
-    int dimension = DEFAULT_DIMENSION,
     int iters = 8,
     int baseVCycles = 4,
     int maxMemoryGb = 0,
@@ -958,7 +943,6 @@ Interpolant<Dim, Real> pointInterpolant(
     param.fullDepth = fullDepth;
     param.baseDepth = baseDepth;
     param.bType = bType;
-    param.dimension = dimension;
     param.iters = iters;
     param.baseVCycles = baseVCycles;
     param.maxMemoryGb = maxMemoryGb;
@@ -973,7 +957,6 @@ Interpolant<Dim, Real> pointInterpolant(
     param.iso = iso;
     param.lapWeight = lapWeight;
     param.biLapWeight = biLapWeight;
-    param.showPerformance = showPerformance;
     param.showResidual = showResidual;
     param.exactInterpolation = exactInterpolation;
     param.verbose = verbose;
@@ -1030,6 +1013,18 @@ void bind_interpolant(py::module& m, const std::string& name)
         });
 }
 
+py::list getParallelTypes()
+{
+    py::list result;
+    for (const auto& name : ThreadPool::ParallelNames) {
+        std::string nameCorrected;
+        std::copy_if(name.begin(), name.end(), std::back_inserter(nameCorrected),
+            [](unsigned char c) { return !std::isspace(c); });
+        result.append(nameCorrected);
+    }
+    return result;
+}
+
 PYBIND11_MODULE(ams_point_interpolant, m)
 {
     m.doc() = "C++ module for Adaptive Multigrid Solvers' Point Interpolant";
@@ -1048,7 +1043,6 @@ PYBIND11_MODULE(ams_point_interpolant, m)
         py::arg("full_depth") = 5,
         py::arg("base_depth") = -1,
         py::arg("b_type") = DEFAULT_FEM_BOUNDARY + 1,
-        py::arg("dimension") = DEFAULT_DIMENSION,
         py::arg("iters") = 8,
         py::arg("base_v_cycles") = 4,
         py::arg("max_memory_gb") = 0,
@@ -1083,7 +1077,6 @@ PYBIND11_MODULE(ams_point_interpolant, m)
         py::arg("full_depth") = 5,
         py::arg("base_depth") = -1,
         py::arg("b_type") = DEFAULT_FEM_BOUNDARY + 1,
-        py::arg("dimension") = DEFAULT_DIMENSION,
         py::arg("iters") = 8,
         py::arg("base_v_cycles") = 4,
         py::arg("max_memory_gb") = 0,
@@ -1103,6 +1096,10 @@ PYBIND11_MODULE(ams_point_interpolant, m)
         py::arg("exact_interpolation") = true,
         py::arg("verbose") = false,
         py::arg("transform_file") = std::string(""));
+
+    m.def("get_parallel_types",
+        &getParallelTypes,
+        "Returns the list of available parallelization strategy types (corresponds to the `parallel` argument).");
 
     bind_interpolant<2, double>(m, "Interpolant2D");
     bind_interpolant<3, double>(m, "Interpolant3D");
