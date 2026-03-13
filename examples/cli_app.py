@@ -14,7 +14,13 @@ faulthandler.enable()
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--input_samples", type=str, default="", help="Input points (ASCII file)"
+        "--input_samples",
+        type=str,
+        default="",
+        help="Input points (ASCII file)",
+    )
+    parser.add_argument(
+        "--delimiter", type=str, default=" ", help="Delimiter of input file"
     )
     args = parser.parse_args()
 
@@ -25,7 +31,7 @@ def main():
     """Console script for py_ams_point_interpolant"""
     args = parse_args()
 
-    data = genfromtxt(args.input_samples, delimiter=" ")
+    data = genfromtxt(args.input_samples, delimiter=args.delimiter)
     points = data[:, :2]
     values = data[:, 2]
 
