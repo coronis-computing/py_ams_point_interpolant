@@ -42,7 +42,11 @@ class CMakeBuild(build_ext):
         cfg = "Debug" if self.debug else "Release"
         build_args = ["--config", cfg]
 
-        cmake_args += [f"-DCMAKE_BUILD_TYPE={cfg}"]
+        cmake_args += [
+            f"-DPython_EXECUTABLE={sys.executable}",
+            f"-DPython3_EXECUTABLE={sys.executable}",
+            f"-DCMAKE_BUILD_TYPE={cfg}",
+        ]
         build_args += ["--", "-j4"]
 
         if not os.path.exists(self.build_temp):
