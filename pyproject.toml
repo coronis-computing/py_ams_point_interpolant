@@ -52,3 +52,6 @@ ignore = ["E203", "E266"]
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
+
+[tool.cibuildwheel]
+before-build = "rm -rf {project}/venv"
