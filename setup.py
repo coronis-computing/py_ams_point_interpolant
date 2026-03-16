@@ -53,6 +53,16 @@ class CMakeBuild(build_ext):
             f"-DCMAKE_BUILD_TYPE={cfg}",
         ]
 
+        if sys.platform == "darwin":
+            # Match the deployment target to the runner
+            arch = os.environ.get("CIBW_ARCHS", "x86_64")
+            if arch == "x86_64":
+                cmake_args.append("-DCMAKE_OSX_ARCHITECTURES=x86_64")
+                cmake_args.append("-DCMAKE_OSX_DEPLOYMENT_TARGET=10.13")
+            else:
+                cmake_args.append("-DCMAKE_OSX_ARCHITECTURES=arm64")
+                cmake_args.append("-DCMAKE_OSX_DEPLOYMENT_TARGET=11.0")
+
         if not os.path.exists(self.build_temp):
             os.makedirs(self.build_temp)
 

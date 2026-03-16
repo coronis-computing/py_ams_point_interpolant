@@ -28,9 +28,7 @@ jobs:
         include:
           - os: ubuntu-latest
           - os: windows-latest
-          - os: macos-13        # Intel x86_64
-            archs: x86_64
-          - os: macos-latest    # Apple Silicon arm64
+          - os: macos-latest
             archs: arm64
 
     steps:
