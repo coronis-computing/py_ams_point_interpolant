@@ -64,6 +64,14 @@ if(OpenMP_CXX_FOUND)
     endif()
 endif()
 
+if(MSVC)
+    target_compile_definitions(ams_point_interpolant PRIVATE 
+        NOMINMAX        # disables min/max macros from windows.h
+        _USE_MATH_DEFINES  # enables M_PI etc on MSVC
+    )
+    target_compile_options(ams_point_interpolant PRIVATE /W3 /O2)
+endif()
+
 # Include directories of PoissonRecon
 target_include_directories(ams_point_interpolant PRIVATE 
     ${poisson_recon_SOURCE_DIR}/Src
