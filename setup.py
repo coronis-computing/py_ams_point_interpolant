@@ -38,8 +38,11 @@ class CMakeBuild(build_ext):
         ext_dir = os.path.abspath(os.path.dirname(ext_fullpath))
         cfg = "Debug" if self.debug else "Release"
 
-        nproc = os.cpu_count()
-        build_args = ["--config", cfg, "--", f"-j{nproc}"]
+        if sys.platform == "win32":
+            build_args = ["--config", cfg, "--", "/m"]
+        else:
+            nproc = os.cpu_count()
+            build_args = ["--config", cfg, "--", f"-j{nproc}"]
 
         cmake_args = [
             f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={ext_dir}",
