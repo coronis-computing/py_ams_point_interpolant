@@ -8,6 +8,8 @@ import sys
 import os
 import subprocess
 import shutil
+import glob as glob_module
+
 
 try:
     import pybind11
@@ -62,26 +64,20 @@ class CMakeBuild(build_ext):
             ["cmake", "--build", "."] + build_args, cwd=self.build_temp
         )
 
-        # Debug: print everything in and around ext_dir
-        import glob as glob_module
+        # Move .so/.pyd
+        patterns = [
+            os.path.join(ext_dir, "ams_point_interpolant*.so"),
+            os.path.join(ext_dir, "ams_point_interpolant*.pyd"),
+            os.path.join(ext_dir, "Release", "ams_point_interpolant*.so"),
+            os.path.join(ext_dir, "Release", "ams_point_interpolant*.pyd"),
+        ]
 
-        print(f"\nDEBUG ext_dir: {ext_dir}")
-        print(f"DEBUG build_temp: {self.build_temp}")
-        print(f"DEBUG ext_fullpath: {ext_fullpath}")
+        built_libs = []
+        for pattern in patterns:
+            built_libs.extend(glob_module.glob(pattern))
 
-        # Search more broadly
-        for search_dir in [ext_dir, self.build_temp, "/tmp/cibuildwheel"]:
-            found = glob_module.glob(
-                os.path.join(search_dir, "**/*.so"), recursive=True
-            )
-            print(f"DEBUG .so files under {search_dir}: {found}")
-
-        # Find the .so CMake actually built and copy it to where setuptools expects it
-        import glob
-
-        built_libs = glob.glob(os.path.join(ext_dir, "ams_point_interpolant*.so"))
         if not built_libs:
-            raise RuntimeError("CMake build succeeded but no .so file was found")
+            raise RuntimeError("CMake build succeeded but no .so/.pyd file was found")
 
         expected_path = os.path.abspath(ext_fullpath)
         os.makedirs(os.path.dirname(expected_path), exist_ok=True)
