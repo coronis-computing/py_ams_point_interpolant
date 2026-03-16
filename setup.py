@@ -9,6 +9,7 @@ import os
 import subprocess
 import shutil
 import glob as glob_module
+import platform
 
 
 try:
@@ -54,14 +55,12 @@ class CMakeBuild(build_ext):
         ]
 
         if sys.platform == "darwin":
-            # Match the deployment target to the runner
-            arch = os.environ.get("CIBW_ARCHS", "x86_64")
-            if arch == "x86_64":
-                cmake_args.append("-DCMAKE_OSX_ARCHITECTURES=x86_64")
-                cmake_args.append("-DCMAKE_OSX_DEPLOYMENT_TARGET=10.13")
-            else:
-                cmake_args.append("-DCMAKE_OSX_ARCHITECTURES=arm64")
-                cmake_args.append("-DCMAKE_OSX_DEPLOYMENT_TARGET=11.0")
+            archs = os.environ.get("CIBW_ARCHS", platform.machine())
+            deployment_target = os.environ.get("MACOSX_DEPLOYMENT_TARGET", "11.0")
+            cmake_args += [
+                f"-DCMAKE_OSX_ARCHITECTURES={archs}",
+                f"-DCMAKE_OSX_DEPLOYMENT_TARGET={deployment_target}",
+            ]
 
         if not os.path.exists(self.build_temp):
             os.makedirs(self.build_temp)

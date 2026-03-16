@@ -30,6 +30,7 @@ jobs:
           - os: windows-latest
           - os: macos-latest
             archs: arm64
+            deployment_target: "11.0"
 
     steps:
       - uses: actions/checkout@v4
