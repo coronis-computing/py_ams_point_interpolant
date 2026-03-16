@@ -7,6 +7,7 @@ from setuptools.command.build_ext import build_ext
 import sys
 import os
 import subprocess
+import shutil
 
 try:
     import pybind11
@@ -33,22 +34,18 @@ class CMakeBuild(build_ext):
 
     def build_extension(self, ext):
         # Get paths
-        ext_dir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
-        cmake_args = [
-            f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={ext_dir}",
-            # f"-DPYTHON_EXECUTABLE={sys.executable}",
-        ]
-
+        ext_fullpath = self.get_ext_fullpath(ext.name)
+        ext_dir = os.path.abspath(os.path.dirname(ext_fullpath))
         cfg = "Debug" if self.debug else "Release"
-        build_args = ["--config", cfg]
 
-        cmake_args += [
+        build_args = ["--config", cfg, "--", "-j4"]
+
+        cmake_args = [
             f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={ext_dir}",
             f"-DPython_EXECUTABLE={sys.executable}",
             f"-DPython3_EXECUTABLE={sys.executable}",
             f"-DCMAKE_BUILD_TYPE={cfg}",
         ]
-        build_args += ["--", "-j4"]
 
         if not os.path.exists(self.build_temp):
             os.makedirs(self.build_temp)
@@ -60,6 +57,17 @@ class CMakeBuild(build_ext):
         subprocess.check_call(
             ["cmake", "--build", "."] + build_args, cwd=self.build_temp
         )
+
+        # Find the .so CMake actually built and copy it to where setuptools expects it
+        import glob
+
+        built_libs = glob.glob(os.path.join(ext_dir, "ams_point_interpolant*.so"))
+        if not built_libs:
+            raise RuntimeError("CMake build succeeded but no .so file was found")
+
+        expected_path = os.path.abspath(ext_fullpath)
+        os.makedirs(os.path.dirname(expected_path), exist_ok=True)
+        shutil.copy2(built_libs[0], expected_path)
 
 
 class CMakeExtension(Extension):
