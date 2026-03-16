@@ -35,18 +35,15 @@ set(COMMON_WARNINGS
     -Wno-invalid-offsetof
 )
 
-set(RELEASE_FLAGS
-    -O3
-    -DRELEASE
-    -funroll-loops
-    -ffast-math
-    -g
-)
-
-set(DEBUG_FLAGS
-    -DDEBUG
-    -g3
-)
+if(MSVC)
+    set(RELEASE_FLAGS /O2 /DRELEASE)
+    set(DEBUG_FLAGS /DDEBUG)
+    set(COMMON_WARNINGS /W3)
+else()
+    set(RELEASE_FLAGS -O3 -DRELEASE -funroll-loops -ffast-math -g)
+    set(DEBUG_FLAGS -DDEBUG -g3)
+    set(COMMON_WARNINGS -Wno-deprecated -Wno-invalid-offsetof)
+endif()
 
 # OpenMP handling
 if(OpenMP_CXX_FOUND)
@@ -62,6 +59,9 @@ pybind11_add_module(ams_point_interpolant cpp/ams_point_interpolant.cpp)
 
 if(OpenMP_CXX_FOUND)
     target_link_libraries(ams_point_interpolant PRIVATE OpenMP::OpenMP_CXX)
+    if(MSVC)
+        target_compile_options(ams_point_interpolant PRIVATE /openmp)
+    endif()
 endif()
 
 # Include directories of PoissonRecon
