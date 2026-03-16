@@ -6,7 +6,7 @@ Python interface for the PointInterpolant executable of the Adaptive Multigrid S
 
 ### From sources
 
-This project requires Python >= 3.7 and CMake to build (cmake should automatically download pybind and PoissonRecon sources, also required). To build and install it using `pip`:
+This project requires Python >= 3.10 and CMake to build (cmake should automatically download pybind and PoissonRecon sources, also required). To build and install it using `pip`:
 
 ```
 cd <path_to>/py_ams_point_interpolant

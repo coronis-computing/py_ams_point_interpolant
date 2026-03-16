@@ -38,7 +38,8 @@ class CMakeBuild(build_ext):
         ext_dir = os.path.abspath(os.path.dirname(ext_fullpath))
         cfg = "Debug" if self.debug else "Release"
 
-        build_args = ["--config", cfg, "--", "-j4"]
+        nproc = os.cpu_count()
+        build_args = ["--config", cfg, "--", f"-j{nproc}"]
 
         cmake_args = [
             f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={ext_dir}",
@@ -57,6 +58,20 @@ class CMakeBuild(build_ext):
         subprocess.check_call(
             ["cmake", "--build", "."] + build_args, cwd=self.build_temp
         )
+
+        # Debug: print everything in and around ext_dir
+        import glob as glob_module
+
+        print(f"\nDEBUG ext_dir: {ext_dir}")
+        print(f"DEBUG build_temp: {self.build_temp}")
+        print(f"DEBUG ext_fullpath: {ext_fullpath}")
+
+        # Search more broadly
+        for search_dir in [ext_dir, self.build_temp, "/tmp/cibuildwheel"]:
+            found = glob_module.glob(
+                os.path.join(search_dir, "**/*.so"), recursive=True
+            )
+            print(f"DEBUG .so files under {search_dir}: {found}")
 
         # Find the .so CMake actually built and copy it to where setuptools expects it
         import glob

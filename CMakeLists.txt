@@ -68,8 +68,3 @@ endif()
 target_include_directories(ams_point_interpolant PRIVATE 
     ${poisson_recon_SOURCE_DIR}/Src
 )
-
-# Set output directory
-set_target_properties(ams_point_interpolant PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/py_ams_point_interpolant
-)
