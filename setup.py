@@ -64,16 +64,6 @@ class CMakeBuild(build_ext):
             ["cmake", "--build", "."] + build_args, cwd=self.build_temp
         )
 
-        print(f"DEBUG searching for .so in: {ext_dir}")
-        built_libs = glob_module.glob(
-            os.path.join(ext_dir, "ams_point_interpolant*.so")
-        )
-        print(f"DEBUG found: {built_libs}")
-        if built_libs:
-            import subprocess
-
-            subprocess.call(["file", built_libs[0]])  # prints architecture info
-
         # Move .so/.pyd
         patterns = [
             os.path.join(ext_dir, "ams_point_interpolant*.so"),
