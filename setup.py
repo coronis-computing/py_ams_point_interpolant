@@ -49,6 +49,11 @@ class CMakeBuild(build_ext):
 
         cmake_args = [
             f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={ext_dir}",
+            # Multi-config generators (e.g., MSVC) append the configuration name
+            # (Release/, Debug/) to the output directory unless the per-config
+            # variables are set explicitly.
+            f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE={ext_dir}",
+            f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG={ext_dir}",
             f"-DPython_EXECUTABLE={sys.executable}",
             f"-DPython3_EXECUTABLE={sys.executable}",
             f"-DCMAKE_BUILD_TYPE={cfg}",
@@ -79,6 +84,8 @@ class CMakeBuild(build_ext):
             os.path.join(ext_dir, "ams_point_interpolant*.pyd"),
             os.path.join(ext_dir, "Release", "ams_point_interpolant*.so"),
             os.path.join(ext_dir, "Release", "ams_point_interpolant*.pyd"),
+            os.path.join(ext_dir, "Debug", "ams_point_interpolant*.so"),
+            os.path.join(ext_dir, "Debug", "ams_point_interpolant*.pyd"),
         ]
 
         built_libs = []
@@ -88,9 +95,13 @@ class CMakeBuild(build_ext):
         if not built_libs:
             raise RuntimeError("CMake build succeeded but no .so/.pyd file was found")
 
+        # Make sure the module ends up exactly where setuptools expects it, and
+        # only once (the module name must match PYBIND11_MODULE in the .cpp).
         expected_path = os.path.abspath(ext_fullpath)
-        os.makedirs(os.path.dirname(expected_path), exist_ok=True)
-        shutil.copy2(built_libs[0], expected_path)
+        built_lib = os.path.abspath(built_libs[0])
+        if built_lib != expected_path:
+            os.makedirs(os.path.dirname(expected_path), exist_ok=True)
+            shutil.move(built_lib, expected_path)
 
 
 class CMakeExtension(Extension):
@@ -110,7 +121,7 @@ def read_file(filename):
 setup(
     name="py_ams_point_interpolant",
     packages=find_packages(),
-    ext_modules=[CMakeExtension("py_ams_point_interpolant.point_interpolant")],
+    ext_modules=[CMakeExtension("py_ams_point_interpolant.ams_point_interpolant")],
     cmdclass={"build_ext": CMakeBuild},
     package_data={
         "py_ams_point_interpolant": ["*.so", "*.pyd", "*.dll"],

@@ -15,7 +15,7 @@ include(FetchContent)
 FetchContent_Declare(
     pybind11
     GIT_REPOSITORY https://github.com/pybind/pybind11.git
-    GIT_TAG v2.11.1
+    GIT_TAG v3.0.1  # >= 3.0 required for Python 3.14
 )
 
 # Fetch PoissonRecon

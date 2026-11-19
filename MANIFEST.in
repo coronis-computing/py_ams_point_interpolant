@@ -9,12 +9,12 @@ include cmake/*.cmake
 recursive-include cmake *.cmake
 
 # Include documentation
-include README.md
-include LICENSE
-include CHANGELOG.md
+include Readme.md
+include LICENSE.txt
+include Changelog.md
 
-# Include examples
-recursive-include examples *.py
+# Include demos
+recursive-include demo *.py
 
 # Include tests
 recursive-include tests *.py

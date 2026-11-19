@@ -667,6 +667,15 @@ Interpolant<sizeof...(FEMSigs), Real> Execute(
 
         treePtr->resetNodeIndices(0);
 
+        // The "exact" interpolation infos only register samples on nodes flagged as valid
+        // space nodes (FEMTreeNodeData::SPACE_FLAG), and size their per-node tables with
+        // the number of sorted nodes. Both are only set when the tree nodes are sorted,
+        // which otherwise happens later (in finalizeForMultigrid). Without this, every
+        // sample was discarded (zero solution) or the program crashed. The infos are then
+        // remapped by finalizeForMultigrid as usual.
+        if (param.exactInterpolation)
+            treePtr->setSortedTreeNodes(std::make_tuple());
+
         if (param.valueWeight > 0) {
             assert(valueSamples != nullptr);
             assert(valueSampleData != nullptr);
@@ -897,7 +906,7 @@ Interpolant<Dim, Real> pointInterpolant(
     if (positionsValues.size() > 0)
         dim = positionsValues.shape(1);
     else
-        dim = positionsGradients.shape(0);
+        dim = positionsGradients.shape(1);
     if (dim < 2 || dim > 3) {
         throw py::value_error("Only 2D or 3D positions are supported.");
     }
